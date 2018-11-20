@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include <iostream> 
 #include <gl/glut.h>
 #include <math.h> 
@@ -223,7 +224,7 @@ void mkList()
 
 	glColor3ub(255, 0, 0);
 	glPushMatrix();
-	glTranslatef(200, -75, 0);
+	glTranslatef(400, -75, 0);
 	glutSolidCube(50);
 	glPopMatrix();
 
