@@ -25,6 +25,7 @@ GLuint MainWindow;
 GLuint idList = 0;
 
 bool run_state = false;
+double speed = 2.0;
 
 double eye_x = 0.0;
 double eye_y = 1.0;
@@ -139,12 +140,12 @@ void keyboard(unsigned char key, int x, int y)
 		rl_angle -= 5;
 		break;
 	case 'w':
-		eye_x += 2.0 * cos(fbmove_radian);
-		eye_z -= 2.0 * sin(fbmove_radian);
+		eye_x += speed * cos(fbmove_radian);
+		eye_z -= speed * sin(fbmove_radian);
 		break;
 	case 's':
-		eye_x -= 2.0 * cos(fbmove_radian);
-		eye_z += 2.0 * sin(fbmove_radian);
+		eye_x -= speed * cos(fbmove_radian);
+		eye_z += speed * sin(fbmove_radian);
 		break;
 	case 'y':
 		ud_angle += 5;
@@ -153,14 +154,24 @@ void keyboard(unsigned char key, int x, int y)
 		ud_angle -= 5;
 		break;
 	case 'a':
-		eye_x += 2.0 * cos(rlmove_radian);
-		eye_z -= 2.0 * sin(rlmove_radian);
+		eye_x += speed * cos(rlmove_radian);
+		eye_z -= speed * sin(rlmove_radian);
 		break;
 	case 'd':
-		eye_x -= 2.0 * cos(rlmove_radian);
-		eye_z += 2.0 * sin(rlmove_radian);
+		eye_x -= speed * cos(rlmove_radian);
+		eye_z += speed * sin(rlmove_radian);
 		break;
-		case ''
+	case 'b':
+		if (run_state == false)
+		{
+			run_state = true;
+			speed = 10.0;
+		}
+		else
+		{
+			run_state = false;
+			speed = 2.0;
+		}
 	default:
 		break;
 	}
@@ -182,23 +193,23 @@ void keyboard(unsigned char key, int x, int y)
 	}
 	else if (key == 'a')
 	{
-		at_x += 2.0 * cos(rlmove_radian);
-		at_z -= 2.0 * sin(rlmove_radian);
+		at_x += speed * cos(rlmove_radian);
+		at_z -= speed * sin(rlmove_radian);
 	}
 	else if (key == 'd')
 	{
-		at_x -= 2.0 * cos(rlmove_radian);
-		at_z += 2.0 * sin(rlmove_radian);
+		at_x -= speed * cos(rlmove_radian);
+		at_z += speed * sin(rlmove_radian);
 	}
 	else if (key == 'w')
 	{
-		at_x += 2.0 * cos(fbmove_radian);
-		at_z -= 2.0 * sin(fbmove_radian);
+		at_x += speed * cos(fbmove_radian);
+		at_z -= speed * sin(fbmove_radian);
 	}
 	else if (key == 's')
 	{
-		at_x -= 2.0 * cos(fbmove_radian);
-		at_z += 2.0 * sin(fbmove_radian);
+		at_x -= speed * cos(fbmove_radian);
+		at_z += speed * sin(fbmove_radian);
 	}
 
 
