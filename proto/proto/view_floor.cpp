@@ -1,5 +1,6 @@
 #include <iostream> 
 #include <gl/glut.h>
+#include <GLFW/glfw3.h>
 #include <math.h> 
 using namespace std;
 
