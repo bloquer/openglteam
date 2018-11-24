@@ -1,14 +1,16 @@
 #include <iostream> 
 #include <gl/glut.h>
-#include <GLFW/glfw3.h>
 #include <math.h> 
 using namespace std;
 
 #define WIDTH 1920 
 #define HEIGHT 1080 
 #define PI 3.14159265
-
+void DrawScene();
+void ResetViewport();
 void display();
+void ItemDisplay();
+void maindis();
 void reshape(int width, int height);
 void keyboard(unsigned char key, int x, int y);
 void Mouse(int x, int y);
@@ -18,8 +20,12 @@ void mkList();
 void enableLight();
 //double z(const double &x, const double &y); 
 
+GLuint MainWindow;
 
 GLuint idList = 0;
+
+bool run_state = false;
+double speed = 2.0;
 
 double eye_x = 0.0;
 double eye_y = 1.0;
@@ -49,11 +55,12 @@ int main(int argc, char **argv)
 	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 	glutInitWindowSize(WIDTH, HEIGHT);
 	glutInitWindowPosition(0, 0);
-	glutCreateWindow("3d game");
+	MainWindow = glutCreateWindow("3d game");
 	glutDisplayFunc(display);
-	glutReshapeFunc(reshape);
 	glutMotionFunc(Mouse);
 	glutKeyboardFunc(keyboard);
+
+	glutReshapeFunc(reshape);
 
 	glEnable(GL_DEPTH_TEST);
 	init();
@@ -62,6 +69,25 @@ int main(int argc, char **argv)
 
 	glutMainLoop();
 	return 0;
+}
+
+void maindis()
+{
+	glClearColor(0, 0, 0, 1);
+	glutSwapBuffers();
+}
+
+void ItemDisplay()
+{
+	ResetViewport();
+	glClearColor(0, 0, 1, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glColor3f(0.0, 0.0, 0.0);
+	glPushMatrix();
+	gluLookAt(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+	DrawScene();
+	glPopMatrix();
+	glutSwapBuffers();
 }
 
 void display()
@@ -79,6 +105,8 @@ void display()
 
 	glFlush();
 	glutSwapBuffers();
+	glutCreateSubWindow(MainWindow, 0, 0, WIDTH, HEIGHT*0.1);
+	glutDisplayFunc(ItemDisplay);
 }
 
 void reshape(int width, int height)
@@ -112,12 +140,12 @@ void keyboard(unsigned char key, int x, int y)
 		rl_angle -= 5;
 		break;
 	case 'w':
-		eye_x += 2.0 * cos(fbmove_radian);
-		eye_z -= 2.0 * sin(fbmove_radian);
+		eye_x += speed * cos(fbmove_radian);
+		eye_z -= speed * sin(fbmove_radian);
 		break;
 	case 's':
-		eye_x -= 2.0 * cos(fbmove_radian);
-		eye_z += 2.0 * sin(fbmove_radian);
+		eye_x -= speed * cos(fbmove_radian);
+		eye_z += speed * sin(fbmove_radian);
 		break;
 	case 'y':
 		ud_angle += 5;
@@ -126,13 +154,24 @@ void keyboard(unsigned char key, int x, int y)
 		ud_angle -= 5;
 		break;
 	case 'a':
-		eye_x += 2.0 * cos(rlmove_radian);
-		eye_z -= 2.0 * sin(rlmove_radian);
+		eye_x += speed * cos(rlmove_radian);
+		eye_z -= speed * sin(rlmove_radian);
 		break;
 	case 'd':
-		eye_x -= 2.0 * cos(rlmove_radian);
-		eye_z += 2.0 * sin(rlmove_radian);
+		eye_x -= speed * cos(rlmove_radian);
+		eye_z += speed * sin(rlmove_radian);
 		break;
+	case 'b':
+		if (run_state == false)
+		{
+			run_state = true;
+			speed = 10.0;
+		}
+		else
+		{
+			run_state = false;
+			speed = 2.0;
+		}
 	default:
 		break;
 	}
@@ -154,23 +193,31 @@ void keyboard(unsigned char key, int x, int y)
 	}
 	else if (key == 'a')
 	{
-		at_x += 2.0 * cos(rlmove_radian);
-		at_z -= 2.0 * sin(rlmove_radian);
+		at_x += speed * cos(rlmove_radian);
+		at_z -= speed * sin(rlmove_radian);
 	}
 	else if (key == 'd')
 	{
-		at_x -= 2.0 * cos(rlmove_radian);
-		at_z += 2.0 * sin(rlmove_radian);
+		at_x -= speed * cos(rlmove_radian);
+		at_z += speed * sin(rlmove_radian);
 	}
 	else if (key == 'w')
 	{
-		at_x += 2.0 * cos(fbmove_radian);
-		at_z -= 2.0 * sin(fbmove_radian);
+		at_x += speed * cos(fbmove_radian);
+		at_z -= speed * sin(fbmove_radian);
 	}
 	else if (key == 's')
 	{
-		at_x -= 2.0 * cos(fbmove_radian);
-		at_z += 2.0 * sin(fbmove_radian);
+		at_x -= speed * cos(fbmove_radian);
+		at_z += speed * sin(fbmove_radian);
+	}
+
+	if (run_state == true)
+	{
+		if (eye_y == 1.0)
+			eye_y += 10.0;
+		else
+			eye_y -= 10.0;
 	}
 
 
@@ -267,4 +314,35 @@ void enableLight()
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
 
 	glEnable(GL_LIGHT0);
+}
+void ResetViewport()
+{
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(-2.0, 2.0, -2.0, 2.0, 0.5, 5.0);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+}
+
+void DrawScene()
+{
+
+	glColor3f(0.7, 0.7, 0.7);
+	glPushMatrix();
+	//glTranslatef(0.0, -1.0, 0.0);
+
+	glBegin(GL_QUADS);
+	glVertex3f(2.0, 0.0, 2.0);
+	glVertex3f(2.0, 0.0, -2.0);
+	glVertex3f(-2.0, 0.0, -2.0);
+	glVertex3f(-2.0, 0.0, 2.0);
+	glEnd();
+
+	glPopMatrix();
+	glColor3f(1.0, 1.0, 1.0);
+	glPushMatrix();
+	glTranslatef(0.0, 0.0, -0.5);
+	glutWireTeapot(1.0);
+	glPopMatrix();
+
 }
