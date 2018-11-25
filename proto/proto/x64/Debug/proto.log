@@ -1,0 +1,9 @@
+﻿  view_floor.cpp
+c:\users\egnaro\desktop\openglteam\proto\proto\view_floor.cpp(108): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\egnaro\desktop\openglteam\proto\proto\view_floor.cpp(245): warning C4244: '초기화 중': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\egnaro\desktop\openglteam\proto\proto\view_floor.cpp(296): warning C4244: '인수': 'int'에서 'GLfloat'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\egnaro\desktop\openglteam\proto\proto\view_floor.cpp(297): warning C4244: '인수': 'int'에서 'GLfloat'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\egnaro\desktop\openglteam\proto\proto\view_floor.cpp(299): warning C4244: '인수': 'int'에서 'GLfloat'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\egnaro\desktop\openglteam\proto\proto\view_floor.cpp(312): warning C4305: '초기화 중': 'double'에서 'GLfloat'(으)로 잘립니다.
+c:\users\egnaro\desktop\openglteam\proto\proto\view_floor.cpp(330): warning C4305: '인수': 'double'에서 'GLfloat'(으)로 잘립니다.
+  proto.vcxproj -> C:\Users\egnaro\Desktop\openglteam\proto\x64\Debug\proto.exe

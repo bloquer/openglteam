@@ -25,6 +25,7 @@ GLuint MainWindow;
 GLuint idList = 0;
 
 bool run_state = false;
+bool eyetop = false;
 double speed = 2.0;
 
 double eye_x = 0.0;
@@ -43,11 +44,12 @@ double rl_angle = 0.0;
 double ud_angle = 0.0;
 
 double r = 300;
-double phi = 0;
 double updown = 0;
 double theta = 1.5;
 int mouse_x = 0;
 int mouse_y = 0;
+
+GLUquadricObj  *qobj;
 
 int main(int argc, char **argv)
 {
@@ -214,10 +216,18 @@ void keyboard(unsigned char key, int x, int y)
 
 	if (run_state == true)
 	{
-		if (eye_y == 1.0)
-			eye_y += 10.0;
+		if (eyetop == false)
+		{
+			eye_y += 1.0;
+			if (eye_y >= 9.0)
+				eyetop = true;
+		}
 		else
-			eye_y -= 10.0;
+		{
+			eye_y -= 1.0;
+			if (eye_y <= 1.0)
+				eyetop = false;
+		}
 	}
 
 
@@ -326,8 +336,18 @@ void ResetViewport()
 
 void DrawScene()
 {
+	qobj = gluNewQuadric();
+	gluQuadricDrawStyle(qobj, GL_POLYGON);
 
-	glColor3f(0.7, 0.7, 0.7);
+	glColor3f(0.71, 0.46, 0.01);
+	glPushMatrix();
+	glTranslatef(-1.0, 0.0, 0.0);
+	gluCylinder(qobj, 10, 10, 20, 3, 3);
+	glPopMatrix();
+
+
+
+
 	glPushMatrix();
 	//glTranslatef(0.0, -1.0, 0.0);
 
