@@ -49,8 +49,6 @@ double theta = 1.5;
 int mouse_x = 0;
 int mouse_y = 0;
 
-GLUquadricObj  *qobj;
-
 int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
@@ -82,7 +80,7 @@ void maindis()
 void ItemDisplay()
 {
 	ResetViewport();
-	glClearColor(0, 0, 1, 0);
+	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
@@ -336,33 +334,56 @@ void ResetViewport()
 
 void DrawScene()
 {
-	qobj = gluNewQuadric();
-	gluQuadricDrawStyle(qobj, GL_POLYGON);
-
-	glColor3f(0.71, 0.46, 0.01);
-	glPushMatrix();
-	glTranslatef(-1.0, 0.0, 0.0);
-	gluCylinder(qobj, 10, 10, 20, 3, 3);
-	glPopMatrix();
-
-
-
+	GLUquadric * sphere;
+	sphere = gluNewQuadric();
 
 	glPushMatrix();
-	//glTranslatef(0.0, -1.0, 0.0);
-
-	glBegin(GL_QUADS);
-	glVertex3f(2.0, 0.0, 2.0);
-	glVertex3f(2.0, 0.0, -2.0);
-	glVertex3f(-2.0, 0.0, -2.0);
-	glVertex3f(-2.0, 0.0, 2.0);
+	glBegin(GL_POLYGON);
+	glColor3f(241.0, 6.0, 62.0);
+	glVertex3f(-1.0, -0.9, 0.6);
+	glVertex3f(-1.0, -0.9, -0.6);
+	glVertex3f(-1.0, -2.0, -0.6);
+	glVertex3f(-1.0, -2.0, 0.6);
 	glEnd();
+	glPopMatrix();
 
-	glPopMatrix();
-	glColor3f(1.0, 1.0, 1.0);
 	glPushMatrix();
-	glTranslatef(0.0, 0.0, -0.5);
-	glutWireTeapot(1.0);
+	glTranslatef(0.0, 0.0, 1.6);
+	glBegin(GL_POLYGON);
+	glColor3f(142, 106, 4);
+	glVertex3f(-1.0, 2.0, 1.0);
+	glVertex3f(-1.0, 2.0, -1.0);
+	glVertex3f(-1.0, -2.0, -1.0);
+	glVertex3f(-1.0, -2.0, 1.0);
+	glEnd();
 	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.0, 0.0, -1.6);
+	glBegin(GL_POLYGON);
+	glColor3f(142, 106, 4);
+	glVertex3f(-1.0, 2.0, 1.0);
+	glVertex3f(-1.0, 2.0, -1.0);
+	glVertex3f(-1.0, -2.0, -1.0);
+	glVertex3f(-1.0, -2.0, 1.0);
+	glEnd();
+	glPopMatrix();
+
+	//glPushMatrix();
+	////glTranslatef(0.0, -1.0, 0.0);
+
+	//glBegin(GL_QUADS);
+	//glVertex3f(2.0, 0.0, 2.0);
+	//glVertex3f(2.0, 0.0, -2.0);
+	//glVertex3f(-2.0, 0.0, -2.0);
+	//glVertex3f(-2.0, 0.0, 2.0);
+	//glEnd();
+
+	//glPopMatrix();
+	//glColor3f(1.0, 1.0, 1.0);
+	//glPushMatrix();
+	//glTranslatef(0.0, 0.0, -0.5);
+	//glutWireTeapot(1.0);
+	//glPopMatrix();
 
 }
