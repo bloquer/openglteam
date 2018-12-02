@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <gl/glut.h>
+#include <stb_image.h>
 #include <FreeImage.h>
 #include <math.h> 
 using namespace std;
@@ -21,18 +22,27 @@ void moveCamera();
 void init();
 void mkList();
 void enableLight();
+void CreateObject(int x, int y, int z);
 GLuint CreateTexture(char const* filename);
 
 // 아이템 0~9번
-void createItem0();
-void createItem1();
-void createItem2();
-void createItem3();
-void createItem4();
-void createItem5();
-void createItem6();
-void createItem7();
+void SelectItem0();
+void SelectItem1();
+void SelectItem2();
+void SelectItem3();
+void SelectItem4();
+void SelectItem5();
+void SelectItem6();
+void SelectItem7();
 //double z(const double &x, const double &y); 
+
+typedef struct cube
+{
+	bool exist = false;
+	double x;
+	double y;
+	double z;
+}cube;
 
 GLuint MainWindow;
 
@@ -63,6 +73,10 @@ double theta = 1.5;
 int mouse_x = 0;
 int mouse_y = 0;
 
+cube temp[256];
+int numtemp[256] = { 0, };
+int itemcount = 0;
+
 int framebufferWidth, framebufferHeight;
 GLuint triangleVertexArrayObject;
 GLuint triangleShaderProgramID;
@@ -89,6 +103,24 @@ int main(int argc, char **argv)
 
 	glutMainLoop();
 	return 0;
+}
+
+void SelectItem0()
+{
+	glColor3ub(102, 0, 0);
+}
+
+void CreateObject(int x, int y, int z)
+{
+	glPushMatrix();
+	glBegin(GL_POLYGON);
+	glColor3f(1.0, 0.502, 0.502);
+	glVertex3f(-1.0, -0.9, 0.6);
+	glVertex3f(-1.0, -0.9, -0.6);
+	glVertex3f(-1.0, -2.0, -0.6);
+	glVertex3f(-1.0, -2.0, 0.6);
+	glEnd();
+	glPopMatrix();
 }
 
 GLuint CreateTexture(char const* filename)
@@ -241,22 +273,22 @@ bool defineVertexArrayObject() {
 	//#1
 	//삼각형을 구성하는 vertex 데이터 - position과 color
 	float position[] = {
-		-1.0f,  2.0f, 1.0f, //vertex 1  위 중앙
-		-1.0f, 2.0f, -1.0f, //vertex 2  오른쪽 아래
-		-1.0f, -2.0f, -1.0f //vertex 3  왼쪽 아래
-		-1.0f, -2.0f, 1.0f //vertex 3  왼쪽 아래
+	   -1.0f,  2.0f, 1.0f, //vertex 1  위 중앙
+	   -1.0f, 2.0f, -1.0f, //vertex 2  오른쪽 아래
+	   -1.0f, -2.0f, -1.0f //vertex 3  왼쪽 아래
+	   - 1.0f, -2.0f, 1.0f //vertex 3  왼쪽 아래
 	};
 
 	float color[] = {
-		1.0f, 0.0f, 0.0f, //vertex 1 : RED (1,0,0)
-		0.0f, 1.0f, 0.0f, //vertex 2 : GREEN (0,1,0) 
-		0.0f, 0.0f, 1.0f  //vertex 3 : BLUE (0,0,1)
+	   1.0f, 0.0f, 0.0f, //vertex 1 : RED (1,0,0)
+	   0.0f, 1.0f, 0.0f, //vertex 2 : GREEN (0,1,0) 
+	   0.0f, 0.0f, 1.0f  //vertex 3 : BLUE (0,0,1)
 	};
 
 	float textureCoordinate[] = {
-		0.5f, 1.0f,  //vertex 1  
-		1.0f, 0.0f,  //vertex 2
-		0.0f, 0.0f   //vertex 3        
+	   0.5f, 1.0f,  //vertex 1  
+	   1.0f, 0.0f,  //vertex 2
+	   0.0f, 0.0f   //vertex 3        
 	};
 
 
@@ -295,8 +327,8 @@ bool defineVertexArrayObject() {
 	/*
 	GLint colorAttribute = glGetAttribLocation(triangleShaderProgramID, "colorAttribute");
 	if (colorAttribute == -1) {
-		cerr << "color 속성 설정 실패" << endl;
-		return false;
+	   cerr << "color 속성 설정 실패" << endl;
+	   return false;
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, triangleColorVertexBufferObjectID);
 	glVertexAttribPointer(colorAttribute, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -393,10 +425,10 @@ void keyboard(unsigned char key, int x, int y)
 	case ESCAPE:
 		exit(0);
 		break;
-	case 'q':
+	case 'j':
 		rl_angle += 5;
 		break;
-	case 'e':
+	case 'l':
 		rl_angle -= 5;
 		break;
 	case 'w':
@@ -407,10 +439,10 @@ void keyboard(unsigned char key, int x, int y)
 		eye_x -= 2.0 * cos(fbmove_radian);
 		eye_z += 2.0 * sin(fbmove_radian);
 		break;
-	case 'y':
+	case 'i':
 		ud_angle += 5;
 		break;
-	case 'h':
+	case 'k':
 		ud_angle -= 5;
 		break;
 	case 'a':
@@ -432,6 +464,14 @@ void keyboard(unsigned char key, int x, int y)
 			run_state = false;
 			speed = 2.0;
 		}
+		break;
+	case 'h':
+		temp[itemcount].exist = true;
+		temp[itemcount].x = at_x;
+		temp[itemcount].y = 20.0;
+		temp[itemcount].z = at_z;
+		itemcount++;
+		break;
 	default:
 		break;
 	}
@@ -491,6 +531,8 @@ void keyboard(unsigned char key, int x, int y)
 	{
 		eye_y = 1.0;
 	}
+
+
 
 
 	glutPostRedisplay();
@@ -572,6 +614,19 @@ void mkList()
 			glPopMatrix();
 		}
 	}
+
+	for (int j = 0; j < itemcount; j++)
+	{
+		if (temp[j].exist == true)
+		{
+			glPushMatrix();
+			glColor3ub(102, 0, 0);
+			glTranslatef(temp[j].x, temp[j].y, temp[j].z);
+			glutSolidCube(50);
+			glTranslatef(-1 * temp[j].x, -1 * temp[j].y, -1 * temp[j].z);
+			glPopMatrix();
+		}
+	}
 }
 
 void enableLight()
@@ -600,9 +655,9 @@ void DrawScene()
 {
 	GLUquadric * sphere;
 	sphere = gluNewQuadric();
-	GLuint textureID = CreateTexture("sand.png");
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textureID);
+	//GLuint textureID = CreateTexture("sand.png");
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, textureID);
 	/*initShaderProgram();
 	defineVertexArrayObject();
 	glUniform1i(glGetUniformLocation(triangleTextureCoordinateBufferObjectID, "tex"), 0);
@@ -611,7 +666,7 @@ void DrawScene()
 
 	glPushMatrix();
 	glBegin(GL_POLYGON);
-	glColor3f(1.0, 0.502, 0.502);
+	glColor3ub(255, 128, 128);
 	glVertex3f(-1.0, -0.9, 0.6);
 	glVertex3f(-1.0, -0.9, -0.6);
 	glVertex3f(-1.0, -2.0, -0.6);
@@ -620,8 +675,9 @@ void DrawScene()
 	glPopMatrix();
 
 	glPushMatrix();
+	glTranslatef(0.0, 0.0, 1.6);
 	glBegin(GL_POLYGON);
-	glColor3f(1, 1, 1);
+	glColor3ub(0, 0, 0);
 	glVertex3f(-1.0, 2.0, 1.0);
 	glVertex3f(-1.0, 2.0, -1.0);
 	glVertex3f(-1.0, -2.0, -1.0);
