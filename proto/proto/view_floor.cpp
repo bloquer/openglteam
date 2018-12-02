@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <gl/glut.h>
+#include <stb_image.h>
 #include <FreeImage.h>
 #include <math.h> 
 using namespace std;
@@ -21,18 +22,26 @@ void moveCamera();
 void init();
 void mkList();
 void enableLight();
+void CreateObject(int x, int y, int z);
 GLuint CreateTexture(char const* filename);
 
 // 아이템 0~9번
-void createItem0();
-void createItem1();
-void createItem2();
-void createItem3();
-void createItem4();
-void createItem5();
-void createItem6();
-void createItem7();
+void SelectItem0();
+void SelectItem1();
+void SelectItem2();
+void SelectItem3();
+void SelectItem4();
+void SelectItem5();
+void SelectItem6();
+void SelectItem7();
 //double z(const double &x, const double &y); 
+
+typedef struct cube
+{
+	double x;
+	double y;
+	double z;
+}cube;
 
 GLuint MainWindow;
 
@@ -63,6 +72,9 @@ double theta = 1.5;
 int mouse_x = 0;
 int mouse_y = 0;
 
+cube temp[256];
+int itemcount = 0;
+
 int framebufferWidth, framebufferHeight;
 GLuint triangleVertexArrayObject;
 GLuint triangleShaderProgramID;
@@ -89,6 +101,24 @@ int main(int argc, char **argv)
 
 	glutMainLoop();
 	return 0;
+}
+
+void SelectItem0()
+{
+	glColor3ub(102, 0, 0);
+}
+
+void CreateObject(int x, int y, int z)
+{
+	glPushMatrix();
+	glBegin(GL_POLYGON);
+	glColor3f(1.0, 0.502, 0.502);
+	glVertex3f(-1.0, -0.9, 0.6);
+	glVertex3f(-1.0, -0.9, -0.6);
+	glVertex3f(-1.0, -2.0, -0.6);
+	glVertex3f(-1.0, -2.0, 0.6);
+	glEnd();
+	glPopMatrix();
 }
 
 GLuint CreateTexture(char const* filename)
@@ -432,6 +462,13 @@ void keyboard(unsigned char key, int x, int y)
 			run_state = false;
 			speed = 2.0;
 		}
+		break;
+	case 't':
+		temp[itemcount].x = 20.0;
+		temp[itemcount].y = 20.0;
+		temp[itemcount].z = 0.0;
+		itemcount++;
+		break;
 	default:
 		break;
 	}
@@ -572,6 +609,16 @@ void mkList()
 			glPopMatrix();
 		}
 	}
+
+	for (int j = 0; j < itemcount; j++)
+	{
+		glPushMatrix();
+		glColor3ub(102, 0, 0);
+		glTranslatef(0, j * 100, -200);
+		glutSolidCube(50);
+		glTranslatef(-1 * temp[j].x, -1 * temp[j].y, -1 * temp[j].z);
+		glPopMatrix();
+	}
 }
 
 void enableLight()
@@ -601,8 +648,8 @@ void DrawScene()
 	GLUquadric * sphere;
 	sphere = gluNewQuadric();
 	GLuint textureID = CreateTexture("sand.png");
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textureID);
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, textureID);
 	/*initShaderProgram();
 	defineVertexArrayObject();
 	glUniform1i(glGetUniformLocation(triangleTextureCoordinateBufferObjectID, "tex"), 0);
