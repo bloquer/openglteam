@@ -2,19 +2,20 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <gl/glut.h>
-#include <stb_image.h>
-#include <FreeImage.h>
 #include <math.h> 
+#include <stdlib.h>
+#include <io.h>
 using namespace std;
 
 #define WIDTH 1920 
 #define HEIGHT 1080 
 #define PI 3.14159265
+#define ITEMMAX 256
+
 void DrawScene();
 void ResetViewport();
 void display();
 void ItemDisplay();
-void maindis();
 void reshape(int width, int height);
 void keyboard(unsigned char key, int x, int y);
 void Mouse(int x, int y);
@@ -39,6 +40,7 @@ void SelectItem7();
 typedef struct cube
 {
 	bool exist = false;
+	int id;
 	double x;
 	double y;
 	double z;
@@ -53,7 +55,7 @@ bool eyetop = false;
 double speed = 2.0;
 
 double eye_x = 0.0;
-double eye_y = 1.0;
+double eye_y = 20.0;
 double eye_z = 0.0;
 
 double at_x = 0.0;
@@ -67,15 +69,16 @@ double initAt_z = 0.0;
 double rl_angle = 0.0;
 double ud_angle = 0.0;
 
-double r = 300;
+double r = 100;
 double updown = 0;
 double theta = 1.5;
 int mouse_x = 0;
 int mouse_y = 0;
 
-cube temp[256];
-int numtemp[256] = { 0, };
+cube map_item[ITEMMAX];
+int item_id[ITEMMAX] = { 0, };
 int itemcount = 0;
+int id = 0;
 
 int framebufferWidth, framebufferHeight;
 GLuint triangleVertexArrayObject;
@@ -123,252 +126,6 @@ void CreateObject(int x, int y, int z)
 	glPopMatrix();
 }
 
-GLuint CreateTexture(char const* filename)
-{
-	FREE_IMAGE_FORMAT format = FreeImage_GetFileType(filename, 0);
-
-	if (format == -1)
-		exit(-1);
-
-	if (format == FIF_UNKNOWN)
-	{
-		format = FreeImage_GetFIFFromFilename(filename);
-		if (!FreeImage_FIFSupportsReading(format))
-			exit(-1);
-	}
-
-	FIBITMAP* bitmap = FreeImage_Load(format, filename);
-
-	int bitsPerPixel = FreeImage_GetBPP(bitmap);
-
-	FIBITMAP* bitmap32;
-
-	if (bitsPerPixel == 32)
-		bitmap32 = bitmap;
-	else
-		bitmap32 = FreeImage_ConvertTo32Bits(bitmap);
-
-	int imageWidth = FreeImage_GetWidth(bitmap32);
-	int imageHeight = FreeImage_GetHeight(bitmap32);
-
-	GLubyte* textureData = FreeImage_GetBits(bitmap32);
-
-	GLuint tempTextureID;
-	glGenTextures(1, &tempTextureID);
-	glBindTexture(GL_TEXTURE_2D, tempTextureID);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, textureData);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-	FreeImage_Unload(bitmap32);
-
-	if (bitsPerPixel != 32)
-		FreeImage_Unload(bitmap);
-
-	return tempTextureID;
-}
-bool initShaderProgram() {
-
-	//#3
-	const GLchar* vertexShaderSource =
-		"#version 330 core\n"
-		"in vec3 positionAttribute;"
-		//"in vec3 colorAttribute;"
-		"in vec2 textureCoordinateAttribute;"
-		//"out vec3 passColorAttribute;"
-		"out vec2 passTextureCoordinateAttribute;"
-		"void main()"
-		"{"
-		"gl_Position = vec4(positionAttribute, 1.0);"
-		//"passColorAttribute = colorAttribute;"
-		"passTextureCoordinateAttribute = textureCoordinateAttribute;"
-		"}";
-
-
-	//#4
-	const GLchar* fragmentShaderSource =
-		"#version 330 core\n"
-		//"in vec3 passColorAttribute;"
-		"in vec2 passTextureCoordinateAttribute;"
-		"out vec4 fragmentColor;"
-		"uniform sampler2D tex;"
-		"void main()"
-		"{"
-		//컬러만 출력
-		//"fragmentColor = vec4(passColorAttribute, 1.0);"
-		//텍스처만 출력
-		"fragmentColor = texture(tex, passTextureCoordinateAttribute);"
-		//텍스처와 컬러 같이 출력
-		//"fragmentColor = texture(tex, passTextureCoordinateAttribute)*vec4(passColorAttribute, 1.0); "
-		"}";
-
-
-
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-
-	GLint result;
-	GLchar errorLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &result);
-	if (!result)
-	{
-		glGetShaderInfoLog(vertexShader, 512, NULL, errorLog);
-		cerr << "ERROR: vertex shader 컴파일 실패\n" << errorLog << endl;
-		glDeleteShader(vertexShader);
-		return false;
-	}
-
-
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
-
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &result);
-	if (!result)
-	{
-		glGetShaderInfoLog(fragmentShader, 512, NULL, errorLog);
-		cerr << "ERROR: fragment shader 컴파일 실패\n" << errorLog << endl;
-
-		return false;
-	}
-
-
-
-
-	//#5
-	triangleShaderProgramID = glCreateProgram();
-
-	glAttachShader(triangleShaderProgramID, vertexShader);
-	glAttachShader(triangleShaderProgramID, fragmentShader);
-
-	glLinkProgram(triangleShaderProgramID);
-
-
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
-
-
-	glGetProgramiv(triangleShaderProgramID, GL_LINK_STATUS, &result);
-	if (!result) {
-		glGetProgramInfoLog(triangleShaderProgramID, 512, NULL, errorLog);
-		cerr << "ERROR: shader program 연결 실패\n" << errorLog << endl;
-		return false;
-	}
-
-	return true;
-}
-bool defineVertexArrayObject() {
-
-	glVertex3f(-1.0, 2.0, 1.0);
-	glVertex3f(-1.0, 2.0, -1.0);
-	glVertex3f(-1.0, -2.0, -1.0);
-	glVertex3f(-1.0, -2.0, 1.0);
-	//#1
-	//삼각형을 구성하는 vertex 데이터 - position과 color
-	float position[] = {
-	   -1.0f,  2.0f, 1.0f, //vertex 1  위 중앙
-	   -1.0f, 2.0f, -1.0f, //vertex 2  오른쪽 아래
-	   -1.0f, -2.0f, -1.0f //vertex 3  왼쪽 아래
-	   - 1.0f, -2.0f, 1.0f //vertex 3  왼쪽 아래
-	};
-
-	float color[] = {
-	   1.0f, 0.0f, 0.0f, //vertex 1 : RED (1,0,0)
-	   0.0f, 1.0f, 0.0f, //vertex 2 : GREEN (0,1,0) 
-	   0.0f, 0.0f, 1.0f  //vertex 3 : BLUE (0,0,1)
-	};
-
-	float textureCoordinate[] = {
-	   0.5f, 1.0f,  //vertex 1  
-	   1.0f, 0.0f,  //vertex 2
-	   0.0f, 0.0f   //vertex 3        
-	};
-
-
-
-	//#2
-	//Vertex Buffer Object(VBO)를 생성하여 vertex 데이터를 복사한다.
-	glGenBuffers(1, &trianglePositionVertexBufferObjectID);
-	glBindBuffer(GL_ARRAY_BUFFER, trianglePositionVertexBufferObjectID);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(position), position, GL_STATIC_DRAW);
-
-	glGenBuffers(1, &triangleColorVertexBufferObjectID);
-	glBindBuffer(GL_ARRAY_BUFFER, triangleColorVertexBufferObjectID);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(color), color, GL_STATIC_DRAW);
-
-	glGenBuffers(1, &triangleTextureCoordinateBufferObjectID);
-	glBindBuffer(GL_ARRAY_BUFFER, triangleTextureCoordinateBufferObjectID);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(textureCoordinate), textureCoordinate, GL_STATIC_DRAW);
-
-
-	//#6
-	glGenVertexArrays(1, &triangleVertexArrayObject);
-	glBindVertexArray(triangleVertexArrayObject);
-
-
-	GLint positionAttribute = glGetAttribLocation(triangleShaderProgramID, "positionAttribute");
-	if (positionAttribute == -1) {
-		cerr << "position 속성 설정 실패" << endl;
-		return false;
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, trianglePositionVertexBufferObjectID);
-	glVertexAttribPointer(positionAttribute, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-	glEnableVertexAttribArray(positionAttribute);
-
-
-	/*
-	GLint colorAttribute = glGetAttribLocation(triangleShaderProgramID, "colorAttribute");
-	if (colorAttribute == -1) {
-	   cerr << "color 속성 설정 실패" << endl;
-	   return false;
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, triangleColorVertexBufferObjectID);
-	glVertexAttribPointer(colorAttribute, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(colorAttribute);
-	*/
-
-
-	GLint textureCoordinateAttribute = glGetAttribLocation(triangleShaderProgramID, "textureCoordinateAttribute");
-	if (textureCoordinateAttribute == -1) {
-		cerr << "Texture Coordinate 속성 설정 실패" << endl;
-		return false;
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, triangleTextureCoordinateBufferObjectID);
-	glVertexAttribPointer(textureCoordinateAttribute, 2, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(textureCoordinateAttribute);
-
-
-	glBindVertexArray(0);
-
-
-	return true;
-}
-void framebufferSizeCallback(GLFWwindow* window, int width, int height)
-{
-	//처음 2개의 파라미터는 viewport rectangle의 왼쪽 아래 좌표
-	//다음 2개의 파라미터는 viewport의 너비와 높이이다.
-	//framebuffer의 width와 height를 가져와 glViewport에서 사용한다.
-	glViewport(0, 0, width, height);
-
-	framebufferWidth = width;
-	framebufferHeight = height;
-}
-
-
-void maindis()
-{
-	glClearColor(0, 0, 0, 1);
-	glutSwapBuffers();
-}
-
 void ItemDisplay()
 {
 	ResetViewport();
@@ -411,6 +168,11 @@ void reshape(int width, int height)
 	glLoadIdentity();
 }
 
+void SetHighlight()
+{
+
+}
+
 void keyboard(unsigned char key, int x, int y)
 {
 #define ESCAPE '\033' 
@@ -419,6 +181,8 @@ void keyboard(unsigned char key, int x, int y)
 	double ud_radian;
 	double fbmove_radian = rl_angle * PI / 180;
 	double rlmove_radian = (rl_angle + 90) * PI / 180;
+	bool exist = false;
+	cube temp;
 
 	switch (key)
 	{
@@ -466,19 +230,70 @@ void keyboard(unsigned char key, int x, int y)
 		}
 		break;
 	case 'h':
-		temp[itemcount].exist = true;
-		temp[itemcount].x = at_x;
-		temp[itemcount].y = 20.0;
-		temp[itemcount].z = at_z;
-		itemcount++;
+		// 시점에 대해 큐브 중점의 x, z 결정
+		map_item[itemcount].x = ((int)at_x / 50) * 50 + 25;
+		map_item[itemcount].z = ((int)at_z / 50) * 50 + 25;
+		// 첫번째 아이템에 대한 작업
+		if (itemcount == 0)
+		{
+			map_item[itemcount].y = -40;
+			map_item[itemcount].exist = true;
+			map_item[itemcount].id = itemcount;
+			// 아이템 개수 증가(id 사용)
+			item_id[itemcount] += 1;
+			itemcount++;
+		}
+		else
+		{
+			// 현재 아이템과 기존 아이템들을 비교
+			for (int i = 0; i < itemcount; i++)
+			{
+				// 현재 아이템과 x, z 값이 같은 아이템이 존재하면
+				if (map_item[itemcount].x == map_item[i].x && map_item[itemcount].z == map_item[i].z)
+				{
+					// 해당 y축을 아이템 갯수만큼 증가
+					map_item[itemcount].y = item_id[i] * 50 - 40;
+					map_item[itemcount].id = i;
+					map_item[itemcount].exist = true;
+					// 개수 증가
+					item_id[i] += 1;
+					itemcount++;
+					exist = true;
+					break;
+				}
+			}
+			// 동일 아이템이 발견 후 y를 계산한 경우 이 과정 패스
+			if (exist == false)
+			{
+				id++;
+				map_item[itemcount].y = -40;
+				map_item[itemcount].id = id;
+				map_item[itemcount].exist = true;
+				itemcount++;
+			}
+		}
+		break;
+	case 'r':
+		temp.x = ((int)at_x / 50) * 50 + 25;
+		temp.z = ((int)at_z / 50) * 50 + 25;
+		for (int i = 0; i <= itemcount; i++)
+		{
+			if (temp.x == map_item[i].x && temp.z == map_item[i].z)
+			{
+				map_item[i].exist = false;
+				item_id[map_item[i].id] -= 1;
+				itemcount--;
+				break;
+			}
+		}
 		break;
 	default:
 		break;
 	}
 	if (ud_angle >= 40)
 		ud_angle = 40;
-	else if (ud_angle <= -25)
-		ud_angle = -25;
+	else if (ud_angle <= -15)
+		ud_angle = -15;
 
 	rl_radian = rl_angle * PI / 180;
 	ud_radian = ud_angle * PI / 180;
@@ -511,29 +326,25 @@ void keyboard(unsigned char key, int x, int y)
 		at_x -= 2.0 * cos(fbmove_radian);
 		at_z += 2.0 * sin(fbmove_radian);
 	}
-
 	if (run_state == true && key == 'w')
 	{
 		if (eyetop == false)
 		{
 			eye_y += 1.0;
-			if (eye_y >= 9.0)
+			if (eye_y >= 29.0)
 				eyetop = true;
 		}
 		else
 		{
 			eye_y -= 1.0;
-			if (eye_y <= 1.0)
+			if (eye_y <= 20.0)
 				eyetop = false;
 		}
 	}
 	else if (run_state == true)
 	{
-		eye_y = 1.0;
+		eye_y = 20.0;
 	}
-
-
-
 
 	glutPostRedisplay();
 }
@@ -568,7 +379,7 @@ void moveCamera()
 void init()
 {
 	initAt_x = r * cos(0.0);
-	initAt_y = 0.0;
+	initAt_y = 20.0;
 	initAt_z = r * sin(0.0);
 
 	at_x = initAt_x;
@@ -581,11 +392,9 @@ void mkList()
 	int idInnerList = glGenLists(1);
 	glNewList(idInnerList, GL_COMPILE);
 
-
-
 	glColor3ub(255, 0, 0);
 	glPushMatrix();
-	glTranslatef(400, -75, 0);
+	glTranslatef(400, 0, 0);
 	glutSolidCube(50);
 	glPopMatrix();
 
@@ -607,23 +416,23 @@ void mkList()
 		{
 			glColor3ub(0, 255, 0);
 			glPushMatrix();
-			glTranslatef(i * 100 - 600, -150, -600);
-			glTranslatef(-600, 0, j * 100 - 600);
-			glutSolidCube(100);
-			glTranslatef((i * -100) - 600, 150, (j * -100) - 600);
+			glTranslatef(i * 50 - 200, -90, -200);
+			glTranslatef(-200, 0, j * 50 - 200);
+			glutSolidCube(50);
+			glTranslatef((i * -50) - 200, 90, (j * -50) - 200);
 			glPopMatrix();
 		}
 	}
 
 	for (int j = 0; j < itemcount; j++)
 	{
-		if (temp[j].exist == true)
+		if (map_item[j].exist)
 		{
 			glPushMatrix();
 			glColor3ub(102, 0, 0);
-			glTranslatef(temp[j].x, temp[j].y, temp[j].z);
+			glTranslatef(map_item[j].x, map_item[j].y, map_item[j].z);
 			glutSolidCube(50);
-			glTranslatef(-1 * temp[j].x, -1 * temp[j].y, -1 * temp[j].z);
+			glTranslatef(-1 * map_item[j].x, -1 * map_item[j].y, -1 * map_item[j].z);
 			glPopMatrix();
 		}
 	}
@@ -642,6 +451,7 @@ void enableLight()
 
 	glEnable(GL_LIGHT0);
 }
+
 void ResetViewport()
 {
 	glMatrixMode(GL_PROJECTION);
@@ -653,17 +463,6 @@ void ResetViewport()
 
 void DrawScene()
 {
-	GLUquadric * sphere;
-	sphere = gluNewQuadric();
-	//GLuint textureID = CreateTexture("sand.png");
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, textureID);
-	/*initShaderProgram();
-	defineVertexArrayObject();
-	glUniform1i(glGetUniformLocation(triangleTextureCoordinateBufferObjectID, "tex"), 0);
-	*/
-
-
 	glPushMatrix();
 	glBegin(GL_POLYGON);
 	glColor3ub(255, 128, 128);
