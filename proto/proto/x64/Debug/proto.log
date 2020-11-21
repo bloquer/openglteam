@@ -1,3 +1,0 @@
-﻿  view_floor.cpp
-c:\program files (x86)\windows kits\10\include\10.0.17763.0\um\freeimage.h : warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-LINK : fatal error LNK1104: 'glut32.lib' 파일을 열 수 없습니다.
