@@ -9,6 +9,7 @@
 #include <mmsystem.h>
 #include "Vector.h"
 #include "Camera.h"
+#include "Texture.h"
 
 #pragma comment(lib, "Winmm.lib")
 
@@ -18,7 +19,6 @@ using namespace std;
 #define HEIGHT 1080 
 #define ITEMMAX 256
 
-GLuint LoadTexture(const char * filename, int width, int height, int i);
 Camera FPSCmaera;
 void FreeTexture(GLuint texture);
 void Item_Load();
@@ -44,6 +44,7 @@ typedef struct cube
 }cube;
 
 GLuint texture[9];      // 텍스쳐 저장을 위함
+Texture Tex[9];
 
 double cameraspeed = 0.3;
 double ud_angle = 0.0;
@@ -76,28 +77,6 @@ int item_id[ITEMMAX] = { 0, };
 int itemcount = 0;
 int id = 0;
 
-GLuint LoadTexture(const char * filename, int width, int height, int i)
-{
-	unsigned char * data;
-	FILE * file;
-
-	fopen_s(&file, filename, "rb");
-	if (file == NULL) return 0;
-	data = (unsigned char *)malloc(width * height * 3);
-	fread(data, width * height * 3, 1, file);
-	fclose(file);
-	glGenTextures(1, &texture[i]);
-	glBindTexture(GL_TEXTURE_2D, texture[i]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, data);
-	free(data);
-	return texture[i];
-}
-
 void FreeTexture(GLuint texture)
 {
 	glDeleteTextures(1, &texture);
@@ -105,15 +84,20 @@ void FreeTexture(GLuint texture)
 
 void Item_Load()
 {
-	texture[0] = LoadTexture("texture/dirt.bmp", 1300, 1300, 0);
-	texture[1] = LoadTexture("texture/stones.bmp", 512, 512, 1);
-	texture[2] = LoadTexture("texture/3.bmp", 1388, 800, 2);
-	texture[3] = LoadTexture("texture/brick.bmp", 914, 800, 3);
-	texture[4] = LoadTexture("texture/kr.bmp", 256, 256, 4);
-	texture[5] = LoadTexture("texture/ice.bmp", 512, 512, 5);
-	texture[6] = LoadTexture("texture/er.bmp", 1001, 800, 6);
-	texture[7] = LoadTexture("texture/magma.bmp", 2048, 2048, 7);
-	texture[8] = LoadTexture("texture/grass.bmp", 256, 256, 8);
+	Tex[0] = Texture(1300, 1300, "texture/dirt.bmp");
+	Tex[1] = Texture(512, 512, "texture/stones.bmp");
+	Tex[2] = Texture(1388, 800, "texture/3.bmp");
+	Tex[3] = Texture(914, 800, "texture/brick.bmp");
+	Tex[4] = Texture(256, 256, "texture/kr.bmp");
+	Tex[5] = Texture(512, 512, "texture/ice.bmp");
+	Tex[6] = Texture(1001, 800, "texture/er.bmp");
+	Tex[7] = Texture(2048, 2048, "texture/magma.bmp");
+	Tex[8] = Texture(256, 256, "texture/grass.bmp");
+
+	for (int i = 0; i < 9; i++)
+	{
+		Tex[i].LoadTexture(texture[i]);
+	}
 }
 
 void Display()
