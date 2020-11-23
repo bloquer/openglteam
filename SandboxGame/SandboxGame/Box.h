@@ -1,10 +1,20 @@
 #pragma once
 
+#include <GL/glew.h>
+#include <GL/glut.h>
+
 class Box
 {
-private:
-	double x;
-	double y;
+public:
+	Box();
+	Box(GLfloat X, GLfloat Y, GLfloat Z, GLuint BoxTexture);
 
+	void Generate(GLdouble Size);
+
+private:
+	GLfloat X;
+	GLfloat Y;
+	GLfloat Z;
+	GLuint BoxTexture;
 };
 

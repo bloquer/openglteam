@@ -10,6 +10,7 @@
 #include "Vector.h"
 #include "Camera.h"
 #include "Texture.h"
+#include "Box.h"
 
 #pragma comment(lib, "Winmm.lib")
 
@@ -144,18 +145,8 @@ void Make_Floor()
 	{
 		for (int j = 0; j < 100; j++)
 		{
-			glEnable(GL_TEXTURE_2D);
-			glPushMatrix();
-			glTranslatef(i * 2, -1, 0);
-			glTranslatef(0, 0, j * 2);
-			glBindTexture(GL_TEXTURE_2D, texture[8]); // ¹Ù´Ú ÅØ½ºÃÄ
-			glEnable(GL_TEXTURE_GEN_S);
-			glEnable(GL_TEXTURE_GEN_T);
-			glutSolidCube(2);
-			glDisable(GL_TEXTURE_GEN_S);
-			glDisable(GL_TEXTURE_GEN_T);
-			glTranslatef((i * -2), 1, (j * -2));
-			glPopMatrix();
+			Box Floor(i * 2, -1, j * 2, texture[8]);
+			Floor.Generate(2);
 		}
 	}
 }
@@ -175,7 +166,6 @@ void Set_Item()
 			glutSolidCube(2);
 			glDisable(GL_TEXTURE_GEN_S);
 			glDisable(GL_TEXTURE_GEN_T);
-			glTranslatef(-1 * map_item[j].x, -1 * map_item[j].y, -1 * map_item[j].z);
 			glPopMatrix();
 		}
 	}
@@ -259,11 +249,11 @@ void Keyboard(unsigned char key, int x, int y)
 		FPSCmaera.MoveRight(0.3);
 		break;
 	case 'j':
-		FPSCmaera.LookRight(0.05);
+		FPSCmaera.LookRight(-0.05);
 		temprun_at_y = FPSCmaera.At.y;
 		break;
 	case 'l':
-		FPSCmaera.LookRight(-0.05);
+		FPSCmaera.LookRight(0.05);
 		temprun_at_y = FPSCmaera.At.y;
 		break;
 	case 'i':
@@ -463,6 +453,14 @@ void Init_Camera()
 	FPSCmaera = Camera(50.0, 3.0, 50.0, 53.0, 2.0, 50.0, 0.0, 1.0, 0.0);
 }
 
+int bx = WIDTH / 2, by = HEIGHT / 2;
+void Mouse(int x, int y)
+{
+	FPSCmaera.LookRight((x - bx) * 0.05);
+	std::cout << x << ' ' << bx << '\n';
+	bx = x;
+}
+
 int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
@@ -471,8 +469,9 @@ int main(int argc, char **argv)
 	glutInitWindowPosition(0, 0);
 	glutCreateWindow("3d game");
 	glutDisplayFunc(Display);
-	glutKeyboardFunc(Keyboard);
 	glutReshapeFunc(Reshape);
+	glutPassiveMotionFunc(Mouse);
+	glutKeyboardFunc(Keyboard);
 
 	glEnable(GL_DEPTH_TEST);
 	Init_Camera();
