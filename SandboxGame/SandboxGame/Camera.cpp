@@ -38,8 +38,8 @@ void Camera::LookRight(double Angle)
 {
 	Vector ViewVector = At - Eye;
 
-	At.x = Eye.x + cos(Angle) * ViewVector.x + sin(Angle) * ViewVector.z;
-	At.z = Eye.z - sin(Angle) * ViewVector.x + cos(Angle) * ViewVector.z;
+	At.x = Eye.x + cos(Angle) * ViewVector.x - sin(Angle) * ViewVector.z;
+	At.z = Eye.z + sin(Angle) * ViewVector.x + cos(Angle) * ViewVector.z;
 }
 
 void Camera::LookUp(double Angle)

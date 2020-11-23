@@ -7,9 +7,14 @@
 #include <stdio.h>
 #include <Windows.h>
 #include <mmsystem.h>
+#include <vector>
+#include <list>
+#include <map>
 #include "Vector.h"
 #include "Camera.h"
 #include "Texture.h"
+#include "SolidBox.h"
+#include "WiredBox.h"
 
 #pragma comment(lib, "Winmm.lib")
 
@@ -33,7 +38,7 @@ void Keyboard(unsigned char key, int x, int y);
 void Reshape(int width, int height);
 void Init_Camera();
 
-typedef struct cube
+struct Cube
 {
 	bool exist = false;
 	int id;
@@ -41,7 +46,7 @@ typedef struct cube
 	double y;
 	double z;
 	int texture;
-}cube;
+};
 
 GLuint texture[9];      // 텍스쳐 저장을 위함
 Texture Tex[9];
@@ -72,7 +77,9 @@ double highlight_z = 0.0;
 
 int itemkey = 0;
 
-cube map_item[ITEMMAX];
+map<pair<int, int>, list<Cube>> ItemsCnt;
+
+Cube map_item[ITEMMAX];
 int item_id[ITEMMAX] = { 0, };
 int itemcount = 0;
 int id = 0;
@@ -144,18 +151,8 @@ void Make_Floor()
 	{
 		for (int j = 0; j < 100; j++)
 		{
-			glEnable(GL_TEXTURE_2D);
-			glPushMatrix();
-			glTranslatef(i * 2, -1, 0);
-			glTranslatef(0, 0, j * 2);
-			glBindTexture(GL_TEXTURE_2D, texture[8]); // 바닥 텍스쳐
-			glEnable(GL_TEXTURE_GEN_S);
-			glEnable(GL_TEXTURE_GEN_T);
-			glutSolidCube(2);
-			glDisable(GL_TEXTURE_GEN_S);
-			glDisable(GL_TEXTURE_GEN_T);
-			glTranslatef((i * -2), 1, (j * -2));
-			glPopMatrix();
+			SolidBox Floor(i * 2, -1, j * 2, texture[8]);
+			Floor.Generate(2);
 		}
 	}
 }
@@ -175,7 +172,6 @@ void Set_Item()
 			glutSolidCube(2);
 			glDisable(GL_TEXTURE_GEN_S);
 			glDisable(GL_TEXTURE_GEN_T);
-			glTranslatef(-1 * map_item[j].x, -1 * map_item[j].y, -1 * map_item[j].z);
 			glPopMatrix();
 		}
 	}
@@ -197,14 +193,12 @@ void EnableLight()
 
 void Highlight()
 {
-	glLineWidth(14);
 	glPushMatrix();
+	glLineWidth(14);
 	glColor3ub(255, 255, 51);
 	glTranslatef(highlight_x, highlight_y, highlight_z);
 	glutWireCube(2);
-	glTranslatef(-highlight_x, -highlight_y, -highlight_z);
 	glPopMatrix();
-	glColor3ub(255, 255, 255);
 }
 
 void Keyboard(unsigned char key, int x, int y)
@@ -213,9 +207,11 @@ void Keyboard(unsigned char key, int x, int y)
 
 	double temprun_at_y = 2.0;
 	bool exist = false;
-	cube temp;
+	Cube temp;
 
 	Vector Norm = FPSCmaera.At - FPSCmaera.Eye;
+	double tmpx;
+	double tmpz;
 
 	switch (key)
 	{
@@ -259,11 +255,11 @@ void Keyboard(unsigned char key, int x, int y)
 		FPSCmaera.MoveRight(0.3);
 		break;
 	case 'j':
-		FPSCmaera.LookRight(0.05);
+		FPSCmaera.LookRight(-0.05);
 		temprun_at_y = FPSCmaera.At.y;
 		break;
 	case 'l':
-		FPSCmaera.LookRight(-0.05);
+		FPSCmaera.LookRight(0.05);
 		temprun_at_y = FPSCmaera.At.y;
 		break;
 	case 'i':
@@ -293,6 +289,27 @@ void Keyboard(unsigned char key, int x, int y)
 		// 시점에 대해 큐브 중점의 x, z 결정
 		map_item[itemcount].x = ((int)(FPSCmaera.At.x + Norm.x * 2 + 1) / 2) * 2;
 		map_item[itemcount].z = ((int)(FPSCmaera.At.z + Norm.z * 2 + 1) / 2) * 2;
+
+
+		tmpx = ((int)(FPSCmaera.At.x + Norm.x * 2 + 1) / 2) * 2;
+		tmpz = ((int)(FPSCmaera.At.z + Norm.z * 2 + 1) / 2) * 2;
+		if (ItemsCnt.count(make_pair(tmpx, tmpz)) == 0 || ItemsCnt[make_pair(tmpx, tmpz)].size() == 0)
+		{
+			ItemsCnt[make_pair(tmpx, tmpz)].emplace_back();
+			ItemsCnt[make_pair(tmpx, tmpz)].back().x = tmpx;
+			ItemsCnt[make_pair(tmpx, tmpz)].back().z = tmpz;
+			ItemsCnt[make_pair(tmpx, tmpz)].back().y = 1;
+			ItemsCnt[make_pair(tmpx, tmpz)].back().texture = itemkey;
+		}
+		else
+		{
+			ItemsCnt[make_pair(tmpx, tmpz)].emplace_back();
+			ItemsCnt[make_pair(tmpx, tmpz)].back().x = tmpx;
+			ItemsCnt[make_pair(tmpx, tmpz)].back().z = tmpz;
+			ItemsCnt[make_pair(tmpx, tmpz)].back().y = (ItemsCnt[make_pair(tmpx, tmpz)].size() - 1) * 2 + 1;
+			ItemsCnt[make_pair(tmpx, tmpz)].back().texture = itemkey;
+		}
+
 		// 첫번째 아이템에 대한 작업
 		if (itemcount == 0)
 		{
@@ -463,6 +480,14 @@ void Init_Camera()
 	FPSCmaera = Camera(50.0, 3.0, 50.0, 53.0, 2.0, 50.0, 0.0, 1.0, 0.0);
 }
 
+int bx = WIDTH / 2, by = HEIGHT / 2;
+void Mouse(int x, int y)
+{
+	FPSCmaera.LookRight((x - bx) * 0.05);
+	std::cout << x << ' ' << bx << '\n';
+	bx = x;
+}
+
 int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
@@ -471,6 +496,7 @@ int main(int argc, char **argv)
 	glutInitWindowPosition(0, 0);
 	glutCreateWindow("3d game");
 	glutDisplayFunc(Display);
+	glutPassiveMotionFunc(Mouse);
 	glutKeyboardFunc(Keyboard);
 	glutReshapeFunc(Reshape);
 
