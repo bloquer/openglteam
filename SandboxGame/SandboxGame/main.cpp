@@ -7,10 +7,14 @@
 #include <stdio.h>
 #include <Windows.h>
 #include <mmsystem.h>
+#include <vector>
+#include <list>
+#include <map>
 #include "Vector.h"
 #include "Camera.h"
 #include "Texture.h"
-#include "Box.h"
+#include "SolidBox.h"
+#include "WiredBox.h"
 
 #pragma comment(lib, "Winmm.lib")
 
@@ -34,7 +38,7 @@ void Keyboard(unsigned char key, int x, int y);
 void Reshape(int width, int height);
 void Init_Camera();
 
-typedef struct cube
+struct Cube
 {
 	bool exist = false;
 	int id;
@@ -42,7 +46,7 @@ typedef struct cube
 	double y;
 	double z;
 	int texture;
-}cube;
+};
 
 GLuint texture[9];      // 텍스쳐 저장을 위함
 Texture Tex[9];
@@ -73,7 +77,9 @@ double highlight_z = 0.0;
 
 int itemkey = 0;
 
-cube map_item[ITEMMAX];
+map<pair<int, int>, list<Cube>> ItemsCnt;
+
+Cube map_item[ITEMMAX];
 int item_id[ITEMMAX] = { 0, };
 int itemcount = 0;
 int id = 0;
@@ -145,7 +151,7 @@ void Make_Floor()
 	{
 		for (int j = 0; j < 100; j++)
 		{
-			Box Floor(i * 2, -1, j * 2, texture[8]);
+			SolidBox Floor(i * 2, -1, j * 2, texture[8]);
 			Floor.Generate(2);
 		}
 	}
@@ -187,14 +193,12 @@ void EnableLight()
 
 void Highlight()
 {
-	glLineWidth(14);
 	glPushMatrix();
+	glLineWidth(14);
 	glColor3ub(255, 255, 51);
 	glTranslatef(highlight_x, highlight_y, highlight_z);
 	glutWireCube(2);
-	glTranslatef(-highlight_x, -highlight_y, -highlight_z);
 	glPopMatrix();
-	glColor3ub(255, 255, 255);
 }
 
 void Keyboard(unsigned char key, int x, int y)
@@ -203,9 +207,11 @@ void Keyboard(unsigned char key, int x, int y)
 
 	double temprun_at_y = 2.0;
 	bool exist = false;
-	cube temp;
+	Cube temp;
 
 	Vector Norm = FPSCmaera.At - FPSCmaera.Eye;
+	double tmpx;
+	double tmpz;
 
 	switch (key)
 	{
@@ -283,6 +289,27 @@ void Keyboard(unsigned char key, int x, int y)
 		// 시점에 대해 큐브 중점의 x, z 결정
 		map_item[itemcount].x = ((int)(FPSCmaera.At.x + Norm.x * 2 + 1) / 2) * 2;
 		map_item[itemcount].z = ((int)(FPSCmaera.At.z + Norm.z * 2 + 1) / 2) * 2;
+
+
+		tmpx = ((int)(FPSCmaera.At.x + Norm.x * 2 + 1) / 2) * 2;
+		tmpz = ((int)(FPSCmaera.At.z + Norm.z * 2 + 1) / 2) * 2;
+		if (ItemsCnt.count(make_pair(tmpx, tmpz)) == 0 || ItemsCnt[make_pair(tmpx, tmpz)].size() == 0)
+		{
+			ItemsCnt[make_pair(tmpx, tmpz)].emplace_back();
+			ItemsCnt[make_pair(tmpx, tmpz)].back().x = tmpx;
+			ItemsCnt[make_pair(tmpx, tmpz)].back().z = tmpz;
+			ItemsCnt[make_pair(tmpx, tmpz)].back().y = 1;
+			ItemsCnt[make_pair(tmpx, tmpz)].back().texture = itemkey;
+		}
+		else
+		{
+			ItemsCnt[make_pair(tmpx, tmpz)].emplace_back();
+			ItemsCnt[make_pair(tmpx, tmpz)].back().x = tmpx;
+			ItemsCnt[make_pair(tmpx, tmpz)].back().z = tmpz;
+			ItemsCnt[make_pair(tmpx, tmpz)].back().y = (ItemsCnt[make_pair(tmpx, tmpz)].size() - 1) * 2 + 1;
+			ItemsCnt[make_pair(tmpx, tmpz)].back().texture = itemkey;
+		}
+
 		// 첫번째 아이템에 대한 작업
 		if (itemcount == 0)
 		{
@@ -469,9 +496,9 @@ int main(int argc, char **argv)
 	glutInitWindowPosition(0, 0);
 	glutCreateWindow("3d game");
 	glutDisplayFunc(Display);
-	glutReshapeFunc(Reshape);
 	glutPassiveMotionFunc(Mouse);
 	glutKeyboardFunc(Keyboard);
+	glutReshapeFunc(Reshape);
 
 	glEnable(GL_DEPTH_TEST);
 	Init_Camera();

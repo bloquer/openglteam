@@ -6,15 +6,14 @@
 class Box
 {
 public:
-	Box();
-	Box(GLfloat X, GLfloat Y, GLfloat Z, GLuint BoxTexture);
+	Box() : X(0.0), Y(0.0), Z(0.0) {}
+	Box(GLfloat X, GLfloat Y, GLfloat Z) : X(X), Y(Y), Z(Z) {}
 
-	void Generate(GLdouble Size);
+	virtual void Generate(GLdouble Size) = 0;
 
-private:
+protected:
 	GLfloat X;
 	GLfloat Y;
 	GLfloat Z;
-	GLuint BoxTexture;
 };
 
