@@ -40,8 +40,6 @@ void Init_Camera();
 
 struct Cube
 {
-	bool exist = false;
-	int id;
 	double x;
 	double y;
 	double z;
@@ -159,14 +157,14 @@ void Make_Floor()
 
 void Set_Item()
 {
-	for (int j = 0; j < itemcount; j++)
+	for (auto& elem : ItemsCnt)
 	{
-		if (map_item[j].exist)
+		for (auto& cube : elem.second)
 		{
 			glEnable(GL_TEXTURE_2D);
 			glPushMatrix();
-			glTranslatef(map_item[j].x, map_item[j].y, map_item[j].z);
-			glBindTexture(GL_TEXTURE_2D, texture[map_item[j].texture]); // 각 아이템의 텍스쳐를 불러온다
+			glTranslatef(cube.x, cube.y, cube.z);
+			glBindTexture(GL_TEXTURE_2D, texture[cube.texture]);
 			glEnable(GL_TEXTURE_GEN_S);
 			glEnable(GL_TEXTURE_GEN_T);
 			glutSolidCube(2);
@@ -210,8 +208,9 @@ void Keyboard(unsigned char key, int x, int y)
 	Cube temp;
 
 	Vector Norm = FPSCmaera.At - FPSCmaera.Eye;
-	double tmpx;
-	double tmpz;
+	double tmpx = ((int)(FPSCmaera.At.x + Norm.x * 2 + 1) / 2) * 2;
+	double tmpz = ((int)(FPSCmaera.At.z + Norm.z * 2 + 1) / 2) * 2;
+	pair<double, double> Target = make_pair(tmpx, tmpz);
 
 	switch (key)
 	{
@@ -286,14 +285,8 @@ void Keyboard(unsigned char key, int x, int y)
 		break;
 	case 'h':
 		sndPlaySoundA("C:\\Users\\995sk\\Desktop\\SandboxGame\\SandboxGame\\set.mp3", SND_ASYNC | SND_ALIAS);
-		// 시점에 대해 큐브 중점의 x, z 결정
-		map_item[itemcount].x = ((int)(FPSCmaera.At.x + Norm.x * 2 + 1) / 2) * 2;
-		map_item[itemcount].z = ((int)(FPSCmaera.At.z + Norm.z * 2 + 1) / 2) * 2;
 
-
-		tmpx = ((int)(FPSCmaera.At.x + Norm.x * 2 + 1) / 2) * 2;
-		tmpz = ((int)(FPSCmaera.At.z + Norm.z * 2 + 1) / 2) * 2;
-		if (ItemsCnt.count(make_pair(tmpx, tmpz)) == 0 || ItemsCnt[make_pair(tmpx, tmpz)].size() == 0)
+		if (ItemsCnt.count(Target) == 0 || ItemsCnt[Target].size() == 0)
 		{
 			ItemsCnt[make_pair(tmpx, tmpz)].emplace_back();
 			ItemsCnt[make_pair(tmpx, tmpz)].back().x = tmpx;
@@ -306,69 +299,16 @@ void Keyboard(unsigned char key, int x, int y)
 			ItemsCnt[make_pair(tmpx, tmpz)].emplace_back();
 			ItemsCnt[make_pair(tmpx, tmpz)].back().x = tmpx;
 			ItemsCnt[make_pair(tmpx, tmpz)].back().z = tmpz;
-			ItemsCnt[make_pair(tmpx, tmpz)].back().y = (ItemsCnt[make_pair(tmpx, tmpz)].size() - 1) * 2 + 1;
+			ItemsCnt[make_pair(tmpx, tmpz)].back().y = (ItemsCnt[Target].size() - 1) * 2 + 1;
 			ItemsCnt[make_pair(tmpx, tmpz)].back().texture = itemkey;
 		}
-
-		// 첫번째 아이템에 대한 작업
-		if (itemcount == 0)
-		{
-			map_item[itemcount].y = 1;
-			map_item[itemcount].exist = true;
-			map_item[itemcount].texture = itemkey;
-			map_item[itemcount].id = itemcount;
-			// 아이템 개수 증가(id 사용)
-			item_id[itemcount] += 1;
-			itemcount++;
-		}
-		else
-		{
-			// 현재 아이템과 기존 아이템들을 비교
-			for (int i = 0; i < itemcount; i++)
-			{
-				// 현재 아이템과 x, z 값이 같은 아이템이 존재하면
-				if (map_item[itemcount].x == map_item[i].x && map_item[itemcount].z == map_item[i].z)
-				{
-					// 해당 y축을 아이템 갯수만큼 증가
-					map_item[itemcount].y = item_id[i] * 2 + 1;
-					map_item[itemcount].id = i;
-					map_item[itemcount].exist = true;
-					map_item[itemcount].texture = itemkey;
-					// 개수 증가
-					item_id[i] += 1;
-					itemcount++;
-					exist = true;
-					break;
-				}
-			}
-			// 동일 아이템이 발견 후 y를 계산한 경우 이 과정 패스
-			if (exist == false)
-			{
-				id++;
-				map_item[itemcount].y = 1;
-				map_item[itemcount].id = id;
-				map_item[itemcount].exist = true;
-				map_item[itemcount].texture = itemkey;
-				item_id[id] += 1;
-				itemcount++;
-			}
-		};
 		break;
 	case 'r':
-		temp.x = ((int)(FPSCmaera.At.x + Norm.x * 2 + 1) / 2) * 2;
-		temp.z = ((int)(FPSCmaera.At.z + Norm.z * 2 + 1) / 2) * 2;
-		for (int i = 255; 0 <= i; i--)
+		if (ItemsCnt.count(Target) > 0)
 		{
-			if (map_item[i].exist == true)
-			{
-				if (temp.x == map_item[i].x && temp.z == map_item[i].z)
-				{
-					map_item[i].exist = false;
-					item_id[map_item[i].id] -= 1;
-					itemcount--;
-					break;
-				}
-			}
+			ItemsCnt[Target].pop_back();
+			if (ItemsCnt[Target].size() == 0)
+				ItemsCnt.erase(Target);
 		}
 		break;
 	default:
@@ -409,46 +349,27 @@ void Keyboard(unsigned char key, int x, int y)
 	bool tem = false;
 	highlight_x = ((int)(FPSCmaera.At.x + Norm.x * 2 + 1) / 2) * 2;
 	highlight_z = ((int)(FPSCmaera.At.z + Norm.z * 2 + 1) / 2) * 2;
-	for (int i = 0; i < itemcount; i++)
-	{
-		if (highlight_x == map_item[i].x && highlight_z == map_item[i].z)
-		{
-			int temp = item_id[map_item[i].id];
-			switch (temp)
-			{
-			case 0:
-				highlight_y = -1;
-				break;
-			case 1:
-				highlight_y = 1;
-				break;
-			default:
-				highlight_y = (item_id[map_item[i].id] - 1) * 2 + 1;
-				break;
-			}
-			tem = true;
-			break;
-		}
-	}
-	if (!tem)
+	if (ItemsCnt.count(make_pair(highlight_x, highlight_z)) == 0)
 		highlight_y = -1;
+	else
+		highlight_y = (ItemsCnt[make_pair(highlight_x, highlight_z)].size() - 1) * 2 + 1;
 
 	// 충돌 처리
-	for (int j = 0; j < itemcount; j++)
+	for (auto& elem : ItemsCnt)
 	{
-		if (map_item[j].exist)
-		{
-			int dis = sqrt(pow(FPSCmaera.Eye.x - map_item[j].x, 2) + pow(FPSCmaera.Eye.z - map_item[j].z, 2));
+		double dis = sqrt(
+			pow(elem.first.first - FPSCmaera.Eye.x, 2) +
+			pow(elem.first.second - FPSCmaera.Eye.z, 2)
+		);
 
-			if (dis >= 1.5 && dis <= 2.0)
-			{
-				FPSCmaera.Eye.x = previous_eye_x;
-				FPSCmaera.Eye.y = previous_eye_y;
-				FPSCmaera.Eye.z = previous_eye_z;
-				FPSCmaera.At.x = previous_at_x;
-				FPSCmaera.At.y = previous_at_y;
-				FPSCmaera.At.z = previous_at_z;
-			}
+		if (dis >= 1.5 && dis <= 2.0)
+		{
+			FPSCmaera.Eye.x = previous_eye_x;
+			FPSCmaera.Eye.y = previous_eye_y;
+			FPSCmaera.Eye.z = previous_eye_z;
+			FPSCmaera.At.x = previous_at_x;
+			FPSCmaera.At.y = previous_at_y;
+			FPSCmaera.At.z = previous_at_z;
 		}
 	}
 	if (FPSCmaera.Eye.x <= 0 || FPSCmaera.Eye.z <= 0 || FPSCmaera.Eye.x >= 199 || FPSCmaera.Eye.z >= 199)
@@ -466,11 +387,14 @@ void Keyboard(unsigned char key, int x, int y)
 
 void Reshape(int width, int height)
 {
+	double tw = (double)width / WIDTH;
+	double th = (double)height / HEIGHT;
+
 	glViewport(0, 0, width, height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glTranslatef(0.0, -0.6, 0.0);
-	gluPerspective(30, 2, 2, 100);
+	gluPerspective(30, 1.8 * tw / th, 2, 100);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 }
@@ -496,7 +420,7 @@ int main(int argc, char **argv)
 	glutInitWindowPosition(0, 0);
 	glutCreateWindow("3d game");
 	glutDisplayFunc(Display);
-	glutPassiveMotionFunc(Mouse);
+	//glutPassiveMotionFunc(Mouse);
 	glutKeyboardFunc(Keyboard);
 	glutReshapeFunc(Reshape);
 
