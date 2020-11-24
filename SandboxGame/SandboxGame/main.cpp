@@ -387,11 +387,14 @@ void Keyboard(unsigned char key, int x, int y)
 
 void Reshape(int width, int height)
 {
+	double tw = (double)width / WIDTH;
+	double th = (double)height / HEIGHT;
+
 	glViewport(0, 0, width, height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glTranslatef(0.0, -0.6, 0.0);
-	gluPerspective(30, 2, 2, 100);
+	gluPerspective(30, 1.8 * tw / th, 2, 100);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 }
@@ -417,7 +420,7 @@ int main(int argc, char **argv)
 	glutInitWindowPosition(0, 0);
 	glutCreateWindow("3d game");
 	glutDisplayFunc(Display);
-	glutPassiveMotionFunc(Mouse);
+	//glutPassiveMotionFunc(Mouse);
 	glutKeyboardFunc(Keyboard);
 	glutReshapeFunc(Reshape);
 
