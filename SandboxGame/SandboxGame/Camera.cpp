@@ -1,6 +1,7 @@
 #include "Camera.h"
 #include <cmath>
 
+
 Camera::Camera(double EyeX, double EyeY, double EyeZ,
 	double AtX, double AtY, double AtZ,
 	double UpX, double UpY, double UpZ)

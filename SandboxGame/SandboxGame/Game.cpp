@@ -2,9 +2,28 @@
 #include "Texture.h"
 
 Game::Game()
-	: Wnd(Window(1920, 1080))
+	:
+	Wnd(Window(1920, 1080)),
+	FPSCamera(Camera(50.0, 3.0, 50.0, 53.0, 2.0, 50.0, 0.0, 1.0, 0.0))
 {
+	Vector Norm = FPSCamera.At - FPSCamera.Eye;
+	HighlightBox = WiredBox(Norm.x, Norm.y, Norm.z, 14.0);
+}
 
+void Game::Go()
+{
+	glClearColor(0, 0, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	SetLookPoint();
+	MakeFloor(100, 100);
+	SetItems();
+
+	GLfloat pos[] = { 0, 0, 0, 1 };
+	glLightfv(GL_LIGHT0, GL_POSITION, pos);
+
+	glFlush();
+	glutSwapBuffers();
 }
 
 void Game::MakeFloor(int N, int M)
@@ -36,5 +55,34 @@ void Game::SetTextures()
 	for (int i = 0; i < 9; i++)
 	{
 		Tex[i].LoadTexture(Textures[i]);
+	}
+}
+
+void Game::SetLookPoint()
+{
+	glLoadIdentity();
+	gluLookAt(FPSCamera.Eye.x, FPSCamera.Eye.y, FPSCamera.Eye.z,
+		FPSCamera.At.x, FPSCamera.At.y, FPSCamera.At.z,
+		FPSCamera.Up.x, FPSCamera.Up.y, FPSCamera.Up.z);
+	PreviousCam = FPSCamera;
+}
+
+void Game::SetItems()
+{
+	for (auto& Item : Items)
+	{
+		for (auto& cube : Item.second)
+		{
+			glEnable(GL_TEXTURE_2D);
+			glPushMatrix();
+			glTranslatef(cube.x, cube.y, cube.z);
+			glBindTexture(GL_TEXTURE_2D, Textures[cube.Texture]);
+			glEnable(GL_TEXTURE_GEN_S);
+			glEnable(GL_TEXTURE_GEN_T);
+			glutSolidCube(2);
+			glDisable(GL_TEXTURE_GEN_S);
+			glDisable(GL_TEXTURE_GEN_T);
+			glPopMatrix();
+		}
 	}
 }

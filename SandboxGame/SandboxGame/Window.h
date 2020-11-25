@@ -5,6 +5,8 @@ class Window
 public:
 	Window(int Width, int Height);
 
+	void Reshaping(int ChangedWidth, int ChangedHeight);
+
 private:
 	int Width;
 	int Height;

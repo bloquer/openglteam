@@ -8,6 +8,13 @@ WiredBox::WiredBox(GLfloat X, GLfloat Y, GLfloat Z, GLfloat Width)
 	: Box(X, Y, Z), Width(Width)
 {}
 
+void WiredBox::Update(GLfloat NX, GLfloat NY, GLfloat NZ)
+{
+	X = NX;
+	Y = NY;
+	Z = NZ;
+}
+
 void WiredBox::Generate(GLdouble Size)
 {
 	glPushMatrix();

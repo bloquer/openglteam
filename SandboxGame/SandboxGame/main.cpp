@@ -10,11 +10,8 @@
 #include <vector>
 #include <list>
 #include <map>
-#include "Vector.h"
-#include "Camera.h"
 #include "Texture.h"
-#include "SolidBox.h"
-#include "WiredBox.h"
+#include "Game.h"
 
 #pragma comment(lib, "Winmm.lib")
 
@@ -134,6 +131,10 @@ void Main_Camera()
 	gluLookAt(FPSCmaera.Eye.x, FPSCmaera.Eye.y, FPSCmaera.Eye.z,
 		FPSCmaera.At.x, FPSCmaera.At.y, FPSCmaera.At.z,
 		FPSCmaera.Up.x, FPSCmaera.Up.y, FPSCmaera.Up.z);
+	Vector Norm = FPSCmaera.At - FPSCmaera.Eye;
+	highlight_x = ((int)(FPSCmaera.At.x + Norm.x * 2 + 1) / 2) * 2;
+	highlight_z = ((int)(FPSCmaera.At.z + Norm.z * 2 + 1) / 2) * 2;
+	highlight_y = -1;
 
 	previous_eye_x = FPSCmaera.Eye.x;
 	previous_eye_y = FPSCmaera.Eye.y;
@@ -410,18 +411,28 @@ void Mouse(int x, int y)
 	FPSCmaera.LookRight((x - bx) * 0.05);
 	std::cout << x << ' ' << bx << '\n';
 	bx = x;
+
+	glutPostRedisplay();
+}
+
+void DoTimer(int value)
+{
+	glutDisplayFunc(Display);
+	glutPassiveMotionFunc(Mouse);
+	glutKeyboardFunc(Keyboard);
+	glutPostRedisplay();
+	glutTimerFunc(10, DoTimer, 1);
 }
 
 int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
-	glutInitWindowSize(WIDTH, HEIGHT);
-	glutInitWindowPosition(0, 0);
-	glutCreateWindow("3d game");
+	Game MainGame;
 	glutDisplayFunc(Display);
-	//glutPassiveMotionFunc(Mouse);
+	glutPassiveMotionFunc(Mouse);
 	glutKeyboardFunc(Keyboard);
+	//glutTimerFunc(10, DoTimer, 1);
 	glutReshapeFunc(Reshape);
 
 	glEnable(GL_DEPTH_TEST);

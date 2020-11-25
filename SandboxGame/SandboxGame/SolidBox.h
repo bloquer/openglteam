@@ -5,6 +5,7 @@
 class SolidBox : public Box
 {
 public:
+	SolidBox() = default;
 	SolidBox(GLuint BoxTexture);
 	SolidBox(GLfloat X, GLfloat Y, GLfloat Z, GLuint BoxTexture);
 
