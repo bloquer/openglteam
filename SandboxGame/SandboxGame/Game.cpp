@@ -15,9 +15,11 @@ void Game::Go()
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	InitSetting();
 	SetLookPoint();
 	MakeFloor(100, 100);
 	SetItems();
+	Sun.Generate();
 
 	GLfloat pos[] = { 0, 0, 0, 1 };
 	glLightfv(GL_LIGHT0, GL_POSITION, pos);
@@ -85,4 +87,13 @@ void Game::SetItems()
 			glPopMatrix();
 		}
 	}
+}
+
+void Game::InitSetting()
+{
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glFrontFace(GL_CCW);
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 }

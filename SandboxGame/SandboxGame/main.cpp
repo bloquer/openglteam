@@ -1,6 +1,6 @@
 #include <GL/glew.h>
-#include <iostream>
 #include <GL/glut.h>
+#include <iostream>
 #include <math.h> 
 #include <stdlib.h>
 #include <io.h>
@@ -12,6 +12,7 @@
 #include <map>
 #include "Texture.h"
 #include "Game.h"
+#include "Light.h"
 
 #pragma comment(lib, "Winmm.lib")
 
@@ -29,7 +30,6 @@ void Main_Game();
 void Main_Camera();
 void Make_Floor();
 void Set_Item();
-void EnableLight();
 void Highlight();
 void Keyboard(unsigned char key, int x, int y);
 void Reshape(int width, int height);
@@ -45,6 +45,7 @@ struct Cube
 
 GLuint texture[9];      // 텍스쳐 저장을 위함
 Texture Tex[9];
+Light Sun;
 
 double cameraspeed = 0.3;
 double ud_angle = 0.0;
@@ -107,11 +108,16 @@ void Display()
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glFrontFace(GL_CCW);
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+
+	Sun.Generate();
+
 	Main_Camera();
 	Main_Game();
-
-	GLfloat pos[] = { 0, 0, 0, 1 };
-	glLightfv(GL_LIGHT0, GL_POSITION, pos);
 
 	glFlush();
 	glutSwapBuffers();
@@ -174,20 +180,6 @@ void Set_Item()
 			glPopMatrix();
 		}
 	}
-}
-
-void EnableLight()
-{
-	glEnable(GL_LIGHTING);
-
-	glEnable(GL_COLOR_MATERIAL);
-	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-
-	GLfloat diffuse[] = { 0.7, 0.7, 0.7, 1 };
-
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
-
-	glEnable(GL_LIGHT0);
 }
 
 void Highlight()
@@ -435,10 +427,8 @@ int main(int argc, char **argv)
 	//glutTimerFunc(10, DoTimer, 1);
 	glutReshapeFunc(Reshape);
 
-	glEnable(GL_DEPTH_TEST);
 	Init_Camera();
 
-	//EnableLight();
 	Item_Load();
 
 	glutMainLoop();

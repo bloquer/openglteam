@@ -4,6 +4,7 @@
 #include "Camera.h"
 #include "SolidBox.h"
 #include "WiredBox.h"
+#include "Light.h"
 #include <vector>
 #include <map>
 #include <list>
@@ -18,6 +19,7 @@ public:
 	void SetTextures();
 	void SetLookPoint();
 	void SetItems();
+	void InitSetting();
 
 private:
 	struct Cube
@@ -31,6 +33,7 @@ private:
 	Window Wnd;
 	Camera FPSCamera;
 	Camera PreviousCam;
+	Light Sun;
 	std::vector<std::vector<SolidBox>> Floor;
 	std::map<std::pair<double, double>, std::list<Cube>> Items;
 	WiredBox HighlightBox;

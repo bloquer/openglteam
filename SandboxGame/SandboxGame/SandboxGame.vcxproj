@@ -128,6 +128,7 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SolidBox.cpp" />
     <ClCompile Include="Texture.cpp" />
@@ -138,6 +139,7 @@
     <ClInclude Include="Box.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="SolidBox.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Vector.h" />
