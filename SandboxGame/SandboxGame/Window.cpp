@@ -4,6 +4,9 @@
 
 Window::Window(int Width, int Height)
 	: Width(Width), Height(Height)
+{}
+
+void Window::CreateMainWindow()
 {
 	glutInitWindowSize(Width, Height);
 	glutInitWindowPosition(0, 0);

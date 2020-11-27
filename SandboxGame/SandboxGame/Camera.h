@@ -11,11 +11,11 @@ public:
 		double AtX, double AtY, double AtZ,
 		double UpX, double UpY, double UpZ);
 
-	void MoveForward(double Speed);
-	void MoveRight(double Speed);
+	void MoveForward(float Speed);
+	void MoveRight(float Speed);
 
-	void LookRight(double Angle);
-	void LookUp(double Angle);
+	void LookRight(float Angle);
+	void LookUp(float Angle);
 
 	Vector Eye;
 	Vector At;

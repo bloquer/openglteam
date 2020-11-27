@@ -11,7 +11,7 @@ Camera::Camera(double EyeX, double EyeY, double EyeZ,
 	Up(Vector(UpX, UpY, UpZ))
 {}
 
-void Camera::MoveForward(double Speed)
+void Camera::MoveForward(float Speed)
 {
 	Vector ViewVector = At - Eye;
 
@@ -21,7 +21,7 @@ void Camera::MoveForward(double Speed)
 	At.z += ViewVector.z * Speed;
 }
 
-void Camera::MoveRight(double Speed)
+void Camera::MoveRight(float Speed)
 {
 	Vector ViewVector = At - Eye;
 
@@ -35,7 +35,7 @@ void Camera::MoveRight(double Speed)
 	At.z += ViewVector.z * Speed;
 }
 
-void Camera::LookRight(double Angle)
+void Camera::LookRight(float Angle)
 {
 	Vector ViewVector = At - Eye;
 
@@ -43,7 +43,7 @@ void Camera::LookRight(double Angle)
 	At.z = Eye.z + sin(Angle) * ViewVector.x + cos(Angle) * ViewVector.z;
 }
 
-void Camera::LookUp(double Angle)
+void Camera::LookUp(float Angle)
 {
 	At.y += Angle;
 }

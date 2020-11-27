@@ -1,43 +1,14 @@
 #include "Game.h"
 #include "Texture.h"
 
+#define ESCAPE '\033'
+
 Game::Game()
 	:
-	Wnd(Window(1920, 1080)),
 	FPSCamera(Camera(50.0, 3.0, 50.0, 53.0, 2.0, 50.0, 0.0, 1.0, 0.0))
 {
 	Vector Norm = FPSCamera.At - FPSCamera.Eye;
 	HighlightBox = WiredBox(Norm.x, Norm.y, Norm.z, 14.0);
-}
-
-void Game::Go()
-{
-	glClearColor(0, 0, 0, 1);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	InitSetting();
-	SetLookPoint();
-	MakeFloor(100, 100);
-	SetItems();
-	Sun.Generate();
-
-	GLfloat pos[] = { 0, 0, 0, 1 };
-	glLightfv(GL_LIGHT0, GL_POSITION, pos);
-
-	glFlush();
-	glutSwapBuffers();
-}
-
-void Game::MakeFloor(int N, int M)
-{
-	for (int X = 0; X < N; X++)
-	{
-		Floor.emplace_back();
-		for (int Z = 0; Z < M; Z++)
-		{
-			Floor.back().emplace_back(X * 2, -1, Z * 2, Textures[8]);
-		}
-	}
 }
 
 void Game::SetTextures()
@@ -60,6 +31,17 @@ void Game::SetTextures()
 	}
 }
 
+void Game::InitSetting()
+{
+	glClearColor(0, 0, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glFrontFace(GL_CCW);
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+}
+
 void Game::SetLookPoint()
 {
 	glLoadIdentity();
@@ -67,6 +49,18 @@ void Game::SetLookPoint()
 		FPSCamera.At.x, FPSCamera.At.y, FPSCamera.At.z,
 		FPSCamera.Up.x, FPSCamera.Up.y, FPSCamera.Up.z);
 	PreviousCam = FPSCamera;
+}
+
+void Game::MakeFloor(int N, int M)
+{
+	for (int X = 0; X < N; X++)
+	{
+		Floor.emplace_back();
+		for (int Z = 0; Z < M; Z++)
+		{
+			Floor.back().emplace_back(X * 2, -1, Z * 2, Textures[8]);
+		}
+	}
 }
 
 void Game::SetItems()
@@ -89,11 +83,47 @@ void Game::SetItems()
 	}
 }
 
-void Game::InitSetting()
+void Game::Go()
 {
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glFrontFace(GL_CCW);
-	glEnable(GL_COLOR_MATERIAL);
-	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+	SetItems();
+
+	GLfloat pos[] = { 0, 0, 0, 1 };
+	glLightfv(GL_LIGHT0, GL_POSITION, pos);
+
+	glFlush();
+	glutSwapBuffers();
+}
+
+void Game::Keyboard(unsigned char Key, int x, int y)
+{
+	switch (Key)
+	{
+	case ESCAPE:
+		exit(0);
+		break;
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+		ItemTexture = Key - '1';
+		break;
+	case 'w':
+		FPSCamera.MoveForward(Speed);
+		break;
+	case 's':
+		FPSCamera.MoveForward(-Speed);
+		break;
+	case 'd':
+		FPSCamera.MoveRight(Speed);
+		break;
+	case 'a':
+		FPSCamera.MoveRight(-Speed);
+		break;
+	default:
+		break;
+	}
 }

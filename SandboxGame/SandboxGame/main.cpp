@@ -6,6 +6,7 @@
 #include <io.h>
 #include <stdio.h>
 #include <Windows.h>
+#include <functional>
 #include <mmsystem.h>
 #include <vector>
 #include <list>
@@ -13,6 +14,7 @@
 #include "Texture.h"
 #include "Game.h"
 #include "Light.h"
+#include "Window.h"
 
 #pragma comment(lib, "Winmm.lib")
 
@@ -22,7 +24,10 @@ using namespace std;
 #define HEIGHT 1080 
 #define ITEMMAX 256
 
+Window Wnd(1920, 1080);
+Game MainGame;
 Camera FPSCmaera;
+Light Sun;
 void FreeTexture(GLuint texture);
 void Item_Load();
 void Display();
@@ -45,7 +50,6 @@ struct Cube
 
 GLuint texture[9];      // 텍스쳐 저장을 위함
 Texture Tex[9];
-Light Sun;
 
 double cameraspeed = 0.3;
 double ud_angle = 0.0;
@@ -102,19 +106,16 @@ void Item_Load()
 		Tex[i].LoadTexture(texture[i]);
 	}
 }
-
 void Display()
 {
-	glClearColor(0, 0, 0, 1);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glFrontFace(GL_CCW);
-	glEnable(GL_COLOR_MATERIAL);
-	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-
+	MainGame.InitSetting();
 	Sun.Generate();
+	/*
+	* MainGame.SetLookPoint();
+	* MainGame.MakeFloor(100, 100);
+	* MainGame.SetItems();
+	* MainGame - Update Highlight. Then, Generate
+	*/
 
 	Main_Camera();
 	Main_Game();
@@ -133,7 +134,6 @@ void Main_Game()
 void Main_Camera()
 {
 	glLoadIdentity();
-
 	gluLookAt(FPSCmaera.Eye.x, FPSCmaera.Eye.y, FPSCmaera.Eye.z,
 		FPSCmaera.At.x, FPSCmaera.At.y, FPSCmaera.At.z,
 		FPSCmaera.Up.x, FPSCmaera.Up.y, FPSCmaera.Up.z);
@@ -420,7 +420,8 @@ int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
-	Game MainGame;
+	Wnd.CreateMainWindow();
+	// MainGame.SetTextures();
 	glutDisplayFunc(Display);
 	glutPassiveMotionFunc(Mouse);
 	glutKeyboardFunc(Keyboard);
