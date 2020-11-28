@@ -7,8 +7,15 @@ Game::Game()
 	:
 	FPSCamera(Camera(50.0, 3.0, 50.0, 53.0, 2.0, 50.0, 0.0, 1.0, 0.0))
 {
-	Vector Norm = FPSCamera.At - FPSCamera.Eye;
-	HighlightBox = WiredBox(Norm.x, Norm.y, Norm.z, 14.0);
+	SetTextures();
+	for (int X = 0; X < 100; X++)
+	{
+		Floor.emplace_back();
+		for (int Z = 0; Z < 100; Z++)
+		{
+			Floor.back().emplace_back(X * 2, -1, Z * 2, Textures[8]);
+		}
+	}
 }
 
 void Game::SetTextures()
@@ -24,6 +31,8 @@ void Game::SetTextures()
 	Tex.emplace_back(1001, 800, "texture/er.bmp");
 	Tex.emplace_back(2048, 2048, "texture/magma.bmp");
 	Tex.emplace_back(256, 256, "texture/grass.bmp");
+
+	Textures.resize(Tex.size());
 
 	for (int i = 0; i < 9; i++)
 	{
@@ -42,8 +51,9 @@ void Game::InitSetting()
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 }
 
-void Game::SetLookPoint()
+void Game::SetLookPoint(Camera Cam)
 {
+	FPSCamera = Cam;
 	glLoadIdentity();
 	gluLookAt(FPSCamera.Eye.x, FPSCamera.Eye.y, FPSCamera.Eye.z,
 		FPSCamera.At.x, FPSCamera.At.y, FPSCamera.At.z,
@@ -51,14 +61,13 @@ void Game::SetLookPoint()
 	PreviousCam = FPSCamera;
 }
 
-void Game::MakeFloor(int N, int M)
+void Game::MakeFloor()
 {
-	for (int X = 0; X < N; X++)
+	for (size_t V = 0; V < Floor.size(); V++)
 	{
-		Floor.emplace_back();
-		for (int Z = 0; Z < M; Z++)
+		for (size_t H = 0; H < Floor[V].size(); H++)
 		{
-			Floor.back().emplace_back(X * 2, -1, Z * 2, Textures[8]);
+			Floor[V][H].Generate(2);
 		}
 	}
 }

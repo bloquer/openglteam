@@ -15,6 +15,9 @@
 #include "Game.h"
 #include "Light.h"
 #include "Window.h"
+#include "WiredBox.h"
+
+#define ESCAPE '\033' 
 
 #pragma comment(lib, "Winmm.lib")
 
@@ -28,6 +31,7 @@ Window Wnd(1920, 1080);
 Game MainGame;
 Camera FPSCmaera;
 Light Sun;
+WiredBox HighlightBox(14);
 void FreeTexture(GLuint texture);
 void Item_Load();
 void Display();
@@ -110,11 +114,14 @@ void Display()
 {
 	MainGame.InitSetting();
 	Sun.Generate();
+
+	MainGame.SetLookPoint(FPSCmaera);
+	//MainGame.MakeFloor();
+	MainGame.SetItems();
+	
 	/*
-	* MainGame.SetLookPoint();
-	* MainGame.MakeFloor(100, 100);
-	* MainGame.SetItems();
-	* MainGame - Update Highlight. Then, Generate
+	Vector Norm = MainGame.FPSCamera.At- MainGame.FPSCamera.Eye;
+	HighlightBox.Update(Norm.x, Norm.y, Norm.z);
 	*/
 
 	Main_Camera();
@@ -133,10 +140,6 @@ void Main_Game()
 
 void Main_Camera()
 {
-	glLoadIdentity();
-	gluLookAt(FPSCmaera.Eye.x, FPSCmaera.Eye.y, FPSCmaera.Eye.z,
-		FPSCmaera.At.x, FPSCmaera.At.y, FPSCmaera.At.z,
-		FPSCmaera.Up.x, FPSCmaera.Up.y, FPSCmaera.Up.z);
 	Vector Norm = FPSCmaera.At - FPSCmaera.Eye;
 	highlight_x = ((int)(FPSCmaera.At.x + Norm.x * 2 + 1) / 2) * 2;
 	highlight_z = ((int)(FPSCmaera.At.z + Norm.z * 2 + 1) / 2) * 2;
@@ -194,8 +197,6 @@ void Highlight()
 
 void Keyboard(unsigned char key, int x, int y)
 {
-#define ESCAPE '\033' 
-
 	double temprun_at_y = 2.0;
 	bool exist = false;
 	Cube temp;
@@ -421,7 +422,6 @@ int main(int argc, char **argv)
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 	Wnd.CreateMainWindow();
-	// MainGame.SetTextures();
 	glutDisplayFunc(Display);
 	glutPassiveMotionFunc(Mouse);
 	glutKeyboardFunc(Keyboard);
